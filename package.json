@@ -4,14 +4,16 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-   "dev":"nodemon api/index.js",
-   "start": "node api/index.js"
+    "dev": "nodemon api/index.js",
+    "start": "node api/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^4.21.1"
+    "dotenv": "^16.4.6",
+    "express": "^4.21.1",
+    "mongoose": "^8.8.3"
   }
 }
