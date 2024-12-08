@@ -3,7 +3,9 @@ import { useSelector } from 'react-redux'
 import{getDownloadURL, getStorage,ref, uploadBytesResumable} from 'firebase/storage'
 import {app} from '../firebase.js'
 import { useRef } from 'react'
-import {updateUserStart , updateUserSuccess , updateUserFailure} from '../redux/user/userSlice'
+import{Modal , Button , Alert} from 'flowbite-react'
+import {HiOutlineExclamationCircle} from 'react-icons/hi'
+import {updateUserStart , updateUserSuccess , updateUserFailure , deleteUserStart , deleteUserSuccess , deleteUserFailure} from '../redux/user/userSlice'
 import { useDispatch } from 'react-redux'
 
 
@@ -15,6 +17,7 @@ export default function Profile() {
   const[fileUploadError , setFileUploadError] = useState(false);
    const[formData , setFormData] = useState({})
    const[updateSuccess , setUpdateSuccess] = useState(false)
+   const [showModal , setShowModal] = useState(false)
    const dispatch = useDispatch()
  
 
@@ -73,6 +76,24 @@ export default function Profile() {
     }
   }
 
+  const handleDeleteUser = async()=>{
+    setShowModal(false)
+    try {
+      dispatch(deleteUserStart())
+      const res = await fetch(`/api/user/delete/${currentUser._id}` , {
+        method:'DELETE',
+      });
+      const data = await res.json()
+      if(data.success === false) {
+        dispatch(deleteUserFailure(data.message));
+        return;
+      }
+      dispatch(deleteUserSuccess(data))
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message))
+    }
+  }
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>Profile</h1>
@@ -96,11 +117,73 @@ export default function Profile() {
         <button disabled={loading} className='bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80'>{loading ? 'Loading...' : 'Update'}</button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className='text-red-700 cursor-pointer'>Delete account</span>
+        <span onClick={()=> setShowModal(true)} className='text-red-700 cursor-pointer'>Delete account</span>
         <span className='text-red-700 cursor-pointer'>Sign out</span>
       </div>
       <p className='text-red-700 font-bold mt-5 text-center'>{error ? error:""}</p>
       <p className='text-green-700 font-bold mt-5 text-center'>{updateSuccess ? 'User is updated successfully!':""}</p>
+      
+      <Modal
+  show={showModal}
+  onClose={() => setShowModal(false)}
+  popup
+  size="md"
+  className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md">
+    {/* Close Button */}
+    <button
+      onClick={() => setShowModal(false)}
+      className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 focus:outline-none transition"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+
+    {/* Modal Header */}
+    <div className="text-lg text-center font-semibold text-gray-800 border-b px-6 py-4">
+      Confirm Action
+    </div>
+
+    {/* Modal Body */}
+    <div className="p-6 text-center">
+      <HiOutlineExclamationCircle className="h-16 w-16 mx-auto text-red-500 mb-4" />
+      <h3 className="text-lg font-medium text-gray-600 mb-6">
+        Are you sure you want to delete your account permanently?
+      </h3>
+      <div className="flex justify-center gap-4">
+        <Button
+          color="failure"
+          onClick={handleDeleteUser}
+          className="px-6 py-2 font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+        >
+          Yes, I'm sure
+        </Button>
+        <Button
+          color="gray"
+          onClick={() => setShowModal(false)}
+          className="px-6 py-2 font-medium text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg"
+        >
+          Cancel
+        </Button>
+      </div>
+    </div>
+  </div>
+</Modal>
+
+
     </div>
   )
 }
